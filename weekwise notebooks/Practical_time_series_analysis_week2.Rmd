@@ -1,0 +1,131 @@
+---
+title: "Practical Time Series Analysis Week 2"
+subtitle: 'Instructor: Thistleton & Sadigov, State University of New York'
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+Here are learn to use the package called __astsa__: __Applied Statistical Time Series Analysis__
+This library contains certain data sets like __jj__: __Johnson and Johnsons quaterly earnings per share__ containing 84 quarters (21 years) measured from the first quarter of 1960 to the last quarter of 1980.
+```{r}
+library(astsa)
+plot(jj, type= "o", main="Johnson and Johnsons yearly earning per share", 
+     xlab="Years", ylab="Earnings")
+```
+
+There are more data sets available in this "astsa" package. 
+
+### Auto Correlation cofficient (acf())
+
+If X and Y are two random variables, the covariance (linear dependency between the variables) is given by $cov(X,Y)=E[(X-\mu_X)(Y-\mu_Y)]$ . Now the autocovariance coefficients at different lags is given by $\gamma_k=cov(x_{t+k}, x_t)$ which is estimated by $c_k$, assuming weak stationarity. </br>
+The estimation is given by the formula $c_k=\frac{\sum_{t=1}^{N-k}(x_t-\bar x)(x_{t+k}-\bar x)}{N}$ and $\bar x=\frac{\sum_{t=1}^N x_t}{N}$.
+
+And the autocorrelation coefficient between $x_t$ and $x_{t+k}$ is is defined to be $-1 \leq \rho_k \leq \frac{\gamma_k}{\gamma_0}$ and the estimation of autocorrelation coefficient at lag k is given by $r_k=\frac{c_k}{c_0}$
+
+We will try to simulate a purely random process, i.e. a time series with no specific pattern. This we will generate using rnorm.
+
+```{r}
+purely_rand_pro= ts(rnorm(100))
+print(purely_rand_pro)
+```
+
+as for the previous formula, r0 is always 1, so the below graph shows that first height line to be 1, followed by smaller lines. The best correlated line seems to be 13th lag of the series, for this 20 lags as shown in the graph. The coefficients are given in the acf. By default the graph generates 20 lags. We will see that since there are not more than 100 points so beyond 100 lag.max, it does not show any height. 
+
+__importanatly__ as the process is generated randomly, so do not see any pattern in the graph. 
+
+```{r}
+prp_acf=acf(purely_rand_pro, type= 'correlation', main="purely random process", lag.max = 30)
+```
+
+```{r}
+prp_acf$acf
+
+```
+
+### Random walk
+
+The model is $X_t=X_{t-1}+Z_t$ where $Z_t=Normal(\mu, \sigma^2)$. $Z_t$ is the noice at each time t. 
+So basically, $x_0=z_0, \ x_1=x_0+z_1=z_0+z_1$ and so on. Thus we obtain $x_t=\sum_{k=0}^t z_k$, which gives the exp($X_t$)=$\mu t$ and Var($x_t$)=$\sigma^2 t$
+
+Lets just create a random walk: 
+
+```{r}
+x=NULL
+x[1]=0
+for (i in 2:1000)
+  {
+  x[i]=x[i-1]+rnorm(1)
+}
+head(x)
+```
+
+```{r}
+length(x)
+```
+
+```{r}
+random_walk=ts(x)
+plot(random_walk, main="A random walk", lwd=2,col="blue", ylab="")
+```
+
+```{r}
+acf(random_walk)
+```
+
+Now as the data was not stationary so this is showing a high correlation, so we shall first try to remove the non stationary factors from the data. 
+
+This shows some kind of trend, which can be removed by diff() function. 
+
+```{r}
+plot(diff(random_walk))
+```
+
+```{r}
+acf(diff(random_walk))
+```
+
+We see that the trend is removed and a purely random precess acf is obtained. 
+
+### Moving Average Model. 
+
+__Model__:__$X_t=Z_t+0.7Z_{t-1}+0.2Z_{t-2}$__ considering $Z_t$'s are normally distributed. Also $Z_i$ are iid. Here according to the instructor we will be designing a moving average with lag two.
+
+```{r}
+# generate noise 
+noise= rnorm(100000)
+
+# moving average with lag two variable 
+ma_l2= NULL
+
+# defining the model with the specified lag
+for (i in 3:100000) {
+  ma_l2[i]= noise[i]+ 0.7*noise[i-1]+ 0.2*noise[i-2]
+}
+
+# shifting data to left by two units 
+moving_avg_proc= ma_l2[3:100000]
+
+# Putting time series structure on the data 
+moving_avg_proc=ts(moving_avg_proc)
+
+# Partition output graphics on a multiframe of two rows and one column
+# par(mfrow=c(2,1))
+
+# Plotting the process
+plot(moving_avg_proc, main="Moving Average Process of order 2", ylab=' ', col="blue")
+```
+
+
+```{r}
+# Plotting the acf
+
+acf(moving_avg_proc, main="Corellogram of a moving average process of order two")
+```
+
+Since this is a moving average process fo order two, we see that till lag two, there is a coorelation, beyond that the process have become random. 
+
+Which tells us that the ACF of a MA process of lag k, cuts of after lag k. 
+

@@ -1,0 +1,98 @@
+---
+title: "Practical Time Series Analysis Week 1"
+subtitle: "Instructor: Thistleton & Sadigov, State University of New York"
+output: html_notebook
+---
+
+```{r}
+#Applying the setpwise techniques to the ourist data set.
+tour=readxl::read_xlsx("Tourism.xlsx")
+tour1=data.frame(date=tour$`Year/Month`, arrival=tour$`Visitors Arrival`)
+head(tour1)
+```
+
+
+
+```{r}
+class(tour1)
+```
+
+```{r}
+# converting the tourist data frame intp a time series data. 
+tour1.ts=ts(data=tour1[,2], frequency = 12)
+tour1.ts
+```
+
+```{r}
+class(tour1.ts)
+```
+
+```{r}
+#applying linear time series regression 
+model.tour1=lm(arrival~time(tour1.ts), data=tour1)
+plot(tour1.ts, main="Tourism time series plot", xlab="Time", ylab="Tourists arrival" )
+# Adding the regression line to the data
+abline(model.tour1)
+
+```
+
+
+```{r}
+#Analysing the residuals
+hist(model.tour1$residuals)
+
+```
+
+The histogram of the residues does not show a very normal behavior. Let us check other plots, which gives even better understanidng of the residues 
+
+```{r}
+qqnorm(model.tour1$residuals)
+qqline(model.tour1$residuals)
+```
+
+```{r}
+model.tour1.residuals=resid(model.tour1)
+plot(model.tour1.residuals~time(tour1.ts), main=" residues vs time scatter plot", xlab="time", ylab="residue")
+```
+
+```{r}
+plot(model.tour1.residuals~time(tour1.ts), xlim=c(5,7), 
+     main="Zoomed residues vs time scatter plot",
+     xlab="time", ylab="residue")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
