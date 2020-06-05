@@ -1,0 +1,104 @@
+---
+title: "Practical Time Series Analysis Week 3"
+subtitle: 'Instructor: Thistleton & Sadigov, State University of New York'
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+
+### PACF: Definition
+
+For a time series, the partial autocorrelation between $x_t$ and $x_{t-h}$ is defined as the conditional correlation between $x_t$ and $x_{t-h}$, conditional on $x_{t-h-1},...x_{t-1}$, the set of observations that come between the time points t and t-h.
+
+* The 1st order partial autocorrelation will be defined to equal the 1st order autocorrelation.
+* The 2nd order (lag) partial autocorrelation is 
+
+$\frac {covariance(x_t,x_{t-2}|x_{t-1})}{\sqrt{Variance(x_t|x_{t-1})Variance(x_{t-2}|x_{t-1})}}$
+
+This is the correlation between values two time periods apart conditional on knowledge of the value in between. (By the way, the two variances in the denominator will equal each other in a stationary series.)
+
+* The 3rd order (lag) partial autocorrelation is
+
+$\frac {covariance(x_t,x_{t-3}|x_{t-1},x_{t-2})}{\sqrt{Variance(x_t|x_{t-1},x_{t-2})Variance(x_{t-3}|x_{t-1},x_{t-2})}}$ 
+
+And, so on, for any lag.
+
+#### Observations:
+
+We know that ACF: __Auto Correlation Function__ is a good measure to identify a __moving average process__. We are trying to find out a similar measure for a __Auto Regressive process__.
+
+Simulating an auto regressive process of order 2. 
+
+```{r}
+library(astsa)
+par(mfrow=c(3,1))
+data.ts=arima.sim(n=500, list(ar=c(0.9,-0.6,0.3)))
+plot(data.ts, main="Auto Regressive process with phi1=0.2, phi2= 0.2")
+acf(data.ts, main="Autoregressive function")
+acf(data.ts, type = "partial", main="Partial Autocorrelative Function")
+```
+
+Simulating an auto regressive process of order three.
+
+```{r}
+par(mfrow=c(3,1))
+phi1=0.9
+phi2= -.6
+phi3= .3
+data.ts=arima.sim(n=500, list(ar=c(phi1, phi2, phi3)))
+plot(data.ts, main=paste("Auto Regressive process with phi1=",phi1," phi 2=", phi2, "phi3=", phi3))
+acf(data.ts, main="Autoregressive function")
+acf(data.ts, type = "partial", main="Partial Autocorrelative Function")
+
+```
+
+From the above two ACF and PACF graph we see that the ACF shows random changes in autocorrelation for AR process, however PACF shows a pattern, in both the cases the first lag for PACF is 0 but, for AR(2) process, the PACF shows two significant autocorrelation,and for AR(3) process it shows 3 significant autocorrelation. 
+
+### What can we say!!
+
+For an AR model, the theoretical PACF “shuts off” past the order of the model. The phrase “shuts off” means that in theory the partial autocorrelations are nearly equal to 0 or is insignificant beyond that point. Put another way, the number of non-zero partial autocorrelations gives the order of the AR model. By the “order of the model” we mean the most extreme lag of x that is used as a predictor.
+
+
+### Working with Beveridge Wheat price Dataset
+
+Unlike the video, the data can be directly obtained in package __tseries__, named as __bev__ as a time series "ts" data.
+
+```{r}
+library(zoo)
+library(xts)
+library(quantmod)
+library(tseries)
+data("bev")
+head(bev)
+```
+
+```{r}
+plot(bev, ylab="price", main="Beveridge Food Price Data")
+bev.MA=filter(bev, method="convolution",rep(1/31,31), sides = 2)
+lines(bev.MA, col= "red")
+```
+
+Here we shall try to proceed as the person did in the paper called “Weather and Harvest Cycles" (Beveridge, 1921), and as per the video.
+
+```{r}
+y=bev/bev.MA
+par(mfrow=c(3,1))
+plot(y, ylab="scaled price", main="transformed Beveridge Wheat Price Data")
+acf(na.omit(y), main="Autocorrelation function of Transformed Beveridge Data")
+acf(na.omit(y), type="partial", main="Partial Autocorrelation function of Transformed Beveridge Data")
+```
+
+```{r}
+ar(na.omit(y), order.max = 5)
+```
+
+This apparently shows that the PACF significant correlation and the coefficients for ar() are nearly same, showing that the process is likely to be auto regressive process. 
+
+However the ACF plot here is yet to be analysed. 
+
+
+
+
