@@ -1,2 +1,4 @@
-# Practical-Time-Series-Analysis(Coursera)
- This repo contains week wise notebooks of the course "Practical Time Series Analysis" in coursera along with my findings and learnings. 
+# Repository of all my Coursera Courses. 
+ This repo contains of the notebooks, HTML files, Self practices of two cources that I have completed till date in Cousera. 
+ But More to more soon!
+ 
